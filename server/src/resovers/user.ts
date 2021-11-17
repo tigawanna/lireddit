@@ -6,10 +6,13 @@ import {
   InputType,
   Field,
   ObjectType,
+  Query,
 } from "type-graphql";
 import argon2 from "argon2";
 import MyContex from "./../types";
 import { User } from "./../entities/User";
+
+
 
 @InputType()
 class UsernamePasswordInput {
@@ -40,60 +43,82 @@ class UserResponse {
 @Resolver()
 export class UserResolver {
 
+@Query(()=>User,{nullable:true})
+async Me(
+  @Ctx() { req ,em}: MyContex
+
+){
+  if(!req.session.userId){
+    console.log("you're not logged in")
+    return null
+  }
+  const user=await em.findOne(User,{_id:req.session.userId})
+  return user
+}
+
 
   @Mutation(() => UserResponse)
   async registerUser(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContex
-  ): Promise<UserResponse>{
-
-      if(options.username.length<=2){
-          return{
-        errors:[{
-         field:"username",
-         message:"username length must be greater than 2"
-              }]
-          }
-        }
-        if(options.password.length<=3){
-            return{
-         errors:[{
-           field:"password",
-           message:"password length must be greater than 3"
-                }]
-            }
-          }
-          const hashedPassword = await argon2.hash(options.password);
-          const user = await em.create(User, {
-              username: options.username,
-              password: hashedPassword,
-          })
-
-      try{
-    em.persistAndFlush(user);
-          return {
-            user,
-          };
-      }
-      catch(e){
-          console.log("an error occured  ",e)
-          console.error(e.message)
-          return{
-            errors:[{
-              field:"password",
-              message:"some error occured"
-                   }]
-               }
-      }
- 
- 
+    @Ctx() { em,req }: MyContex
+  ): Promise<UserResponse> {
+    if (options.username.length <= 2) {
+      return {
+        errors: [
+          {
+            field: "username",
+            message: "username length must be greater than 2",
+          },
+        ],
+      };
     }
+    if (options.password.length <= 3) {
+      return {
+        errors: [
+          {
+            field: "password",
+            message: "password length must be greater than 3",
+          },
+        ],
+      };
+    }
+    const hashedPassword = await argon2.hash(options.password);
+    const user = await em.create(User, {
+      username: options.username,
+      password: hashedPassword,
+    });
+
+    try {
+      await em.persistAndFlush(user);
+    } catch (e) {
+      console.log("an error occured  ", e);
+      if (e.code === "23505") {
+        console.log("username exist");
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "that username is already taken",
+            },
+          ],
+        };
+      }else{
+          console.log("something is wrong with the register user mutation",e)
+      }
+    }
+    console.log("new account created :",user)
+    req.session.userId=user._id
+    return {
+      user,
+    };
+  }
+
 
 
   @Mutation(() => UserResponse)
   async loginUser(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em }: MyContex
+    @Ctx() { em,req }: MyContex
   ): Promise<UserResponse> {
     const user = await em.findOne(User, { username: options.username });
     if (!user) {
@@ -101,7 +126,7 @@ export class UserResolver {
         errors: [
           {
             field: "username",
-            message: "username doesnt exits",
+            message: "that username doesn't exist in our records",
           },
         ],
       };
@@ -117,6 +142,11 @@ export class UserResolver {
         ],
       };
     }
+ 
+ req.session.userId=user._id
+//  req.session.user=user
+ console.log("session token",req.session)
+ console.log("successfull sign in :",user)
     return {
       user,
     };

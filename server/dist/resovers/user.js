@@ -59,21 +59,33 @@ UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
 let UserResolver = class UserResolver {
-    async registerUser(options, { em }) {
+    async Me({ req, em }) {
+        if (!req.session.userId) {
+            console.log("you're not logged in");
+            return null;
+        }
+        const user = await em.findOne(User_1.User, { _id: req.session.userId });
+        return user;
+    }
+    async registerUser(options, { em, req }) {
         if (options.username.length <= 2) {
             return {
-                errors: [{
+                errors: [
+                    {
                         field: "username",
-                        message: "username length must be greater than 2"
-                    }]
+                        message: "username length must be greater than 2",
+                    },
+                ],
             };
         }
         if (options.password.length <= 3) {
             return {
-                errors: [{
+                errors: [
+                    {
                         field: "password",
-                        message: "password length must be greater than 3"
-                    }]
+                        message: "password length must be greater than 3",
+                    },
+                ],
             };
         }
         const hashedPassword = await argon2_1.default.hash(options.password);
@@ -82,30 +94,39 @@ let UserResolver = class UserResolver {
             password: hashedPassword,
         });
         try {
-            em.persistAndFlush(user);
-            return {
-                user,
-            };
+            await em.persistAndFlush(user);
         }
         catch (e) {
             console.log("an error occured  ", e);
-            console.error(e.message);
-            return {
-                errors: [{
-                        field: "password",
-                        message: "some error occured"
-                    }]
-            };
+            if (e.code === "23505") {
+                console.log("username exist");
+                return {
+                    errors: [
+                        {
+                            field: "username",
+                            message: "that username is already taken",
+                        },
+                    ],
+                };
+            }
+            else {
+                console.log("something is wrong with the register user mutation", e);
+            }
         }
+        console.log("new account created :", user);
+        req.session.userId = user._id;
+        return {
+            user,
+        };
     }
-    async loginUser(options, { em }) {
+    async loginUser(options, { em, req }) {
         const user = await em.findOne(User_1.User, { username: options.username });
         if (!user) {
             return {
                 errors: [
                     {
                         field: "username",
-                        message: "username doesnt exits",
+                        message: "that username doesn't exist in our records",
                     },
                 ],
             };
@@ -121,11 +142,21 @@ let UserResolver = class UserResolver {
                 ],
             };
         }
+        req.session.userId = user._id;
+        console.log("session token", req.session);
+        console.log("successfull sign in :", user);
         return {
             user,
         };
     }
 };
+__decorate([
+    (0, type_graphql_1.Query)(() => User_1.User, { nullable: true }),
+    __param(0, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "Me", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => UserResponse),
     __param(0, (0, type_graphql_1.Arg)("options")),
