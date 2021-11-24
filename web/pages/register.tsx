@@ -1,5 +1,7 @@
+// @ts-nocheck
+
 import { useState } from "react"
-import { graphError, validator } from './../helper/helper';
+import { validator } from './../helper/helper';
 import styles from '../styles/Register.module.css'
 import { useMutation } from "urql";
 
@@ -35,7 +37,6 @@ mutation Register($username:String!,$password:String!){
         }`
     
 const[{error},register]=useMutation(REGISTER_MUTATION)
-
 console.log("graph ql error  ",JSON.stringify(error))
 const handleChange = (evt) => {
     const value = evt.target.value;
@@ -53,10 +54,7 @@ const handleSubmit=(e)=>{
 //     }
    register(input).then(s=>{
        console.log("stuffing success ",s.data.registerUser)
-       if(s.data.registerUser.errors){
-         graphError(s.data.registerUser.errors,setError)
-       }
-     }).catch(e=>{
+   }).catch(e=>{
        console.log("error registering user  ",e)
    })
     }

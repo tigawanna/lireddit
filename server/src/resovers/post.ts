@@ -21,7 +21,8 @@ post(
 @Mutation(()=>Post)
 async createPost(
 @Arg('title',()=>String) title:String,
-@Ctx() {em}:MyContex) :Promise<Post>{
+@Ctx() {em,req}:MyContex) :Promise<Post>{
+req.session.deeznuts="blue"
 const post= em.create(Post,{title})
 await em.persistAndFlush(post)
  return post

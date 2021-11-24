@@ -95,10 +95,11 @@ let UserResolver = class UserResolver {
         });
         try {
             await em.persistAndFlush(user);
+            req.session.userId = 666;
         }
         catch (e) {
             console.log("an error occured  ", e);
-            if (e.code === "23505") {
+            if (e.detail.includes("already exists")) {
                 console.log("username exist");
                 return {
                     errors: [
@@ -114,6 +115,7 @@ let UserResolver = class UserResolver {
             }
         }
         console.log("new account created :", user);
+        console.log("new account created :", req.session);
         req.session.userId = user._id;
         return {
             user,

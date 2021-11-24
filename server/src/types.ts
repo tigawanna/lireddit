@@ -13,7 +13,8 @@ import { Session } from 'express-session';
 declare module 'express-session' {
     interface Session {
        userId: number;
-       user:Object
+       user:Object,
+       deeznuts:String
      }
    }
 export default MyContex

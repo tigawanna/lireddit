@@ -22,7 +22,8 @@ let PostResolver = class PostResolver {
     post(_id, { em }) {
         return em.findOne(Posts_1.Post, { _id });
     }
-    async createPost(title, { em }) {
+    async createPost(title, { em, req }) {
+        req.session.deeznuts = "blue";
         const post = em.create(Posts_1.Post, { title });
         await em.persistAndFlush(post);
         return post;
