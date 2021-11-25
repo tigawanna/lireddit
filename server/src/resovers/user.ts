@@ -108,8 +108,7 @@ async Me(
           console.log("something is wrong with the register user mutation",e)
       }
     }
-    console.log("new account created :",user)
-    console.log("new account created :",req.session)
+   //set cookie to keep user logged in
     req.session.userId=user._id
     return {
       user,
@@ -145,12 +144,8 @@ async Me(
         ],
       };
     }
- 
- req.session.userId=user._id
-//  req.session.user=user
- console.log("session token",req.session)
- console.log("successfull sign in :",user)
-    return {
+    req.session.userId=user._id
+   return {
       user,
     };
   }

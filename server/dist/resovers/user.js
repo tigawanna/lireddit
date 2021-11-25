@@ -114,8 +114,6 @@ let UserResolver = class UserResolver {
                 console.log("something is wrong with the register user mutation", e);
             }
         }
-        console.log("new account created :", user);
-        console.log("new account created :", req.session);
         req.session.userId = user._id;
         return {
             user,
@@ -145,8 +143,6 @@ let UserResolver = class UserResolver {
             };
         }
         req.session.userId = user._id;
-        console.log("session token", req.session);
-        console.log("successfull sign in :", user);
         return {
             user,
         };

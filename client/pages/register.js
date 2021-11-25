@@ -1,13 +1,13 @@
 import { useState } from "react"
 import { graphError, validator } from './../helper/helper';
 import styles from '../styles/Register.module.css'
-import { useMutation } from "urql";
+import { useMutation,gql } from "urql";
 
 function Register() {
 const [input, setInput] = useState( {username:"",password:""} )
 const [inerror, setError] = useState({nameError:"",passwordError:""})
 
-const REGISTER_MUTATION=`
+const REGISTER_MUTATION=gql`
 mutation Register($username:String!,$password:String!){
     registerUser(options:{username:$username,password:$password}){
       user{
@@ -21,18 +21,7 @@ mutation Register($username:String!,$password:String!){
     
     `
 
-    const GEG=`
-    mutation registerUser($options: UsernamePasswordInput!){
-        registerUser(options:{username:"benitos",password:"12345"}){
-          user{
-           
-          username
-          }errors {
-            field
-            message
-          }
-        }
-        }`
+  
     
 const[{error},register]=useMutation(REGISTER_MUTATION)
 
@@ -48,18 +37,18 @@ const handleChange = (evt) => {
 const handleSubmit=(e)=>{
     e.preventDefault()
     console.log(input)
-//    if( validator(input,setError)){
-//     register(input)
-//     }
-   register(input).then(s=>{
-       console.log("stuffing success ",s.data.registerUser)
-       if(s.data.registerUser.errors){
-         graphError(s.data.registerUser.errors,setError)
-       }
-     }).catch(e=>{
-       console.log("error registering user  ",e)
-   })
-    }
+   if( validator(input,setError)){
+    register(input).then(s=>{
+      console.log("stuffing success ",s.data.registerUser)
+      if(s.data.registerUser.errors){
+        graphError(s.data.registerUser.errors,setError)
+      }
+    }).catch(e=>{
+      console.log("error registering user  ",e)
+  })
+}
+}
+
 return (
     <div className={styles.container}>
    

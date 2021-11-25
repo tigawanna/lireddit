@@ -22,11 +22,20 @@ import { cors } from 'cors';
 
 const app=express();
 const main= async ()=>{
-
+  
+  const allowedOrigins = ['http://localhost:3000',
+  'https://studio.apollographql.com'];
   const corsOptions = {
-    // origin: " https://studio.apollographql.com",
-    origin: " http://localhost:3000",
-    credentials: true,
+  credentials: true,
+    origin: function(origin, callback){
+     if(!origin) return callback(null, true);
+      if(allowedOrigins.indexOf(origin) === -1){
+        var msg = 'The CORS policy for this site does not ' +
+                  'allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    }
   }
 app.use(cors(corsOptions))  
 const orm=await MikroORM.init(mikroOrmConfig);
@@ -35,31 +44,8 @@ await orm.getMigrator().up();
 const RedisStore =connectRedis(session)
 const redisClient = redis.createClient()
 
-
-// app.use(session({
-// name:'deeznuts',
-// store: new RedisStore({ 
-//     client: redisClient,
-//     disableTouch:true,
-// }),
-//   name:"boobos",
-//   secret: 'keyboard cat',
-//   resave: false,
-//   saveUninitialized: true,
-//   cookie: { 
-//     name:"bussin",
-//     secure: true ,
-//     httpOnly:false,
-//     sameSite:'none',
-//     maxAge:1000*60*60*24*365*10,
-//   },
-//   saveUninitialized: false,
-//   secret: 'tgytxgftfyf',
-//   resave: false,
-// }))
-
 app.use(session({
-  name:'deeznuts',
+  name:'qid',
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: false,

@@ -18,9 +18,20 @@ const express_session_1 = __importDefault(require("express-session"));
 const connect_redis_1 = __importDefault(require("connect-redis"));
 const app = (0, express_1.default)();
 const main = async () => {
+    const allowedOrigins = ['http://localhost:3000',
+        'https://studio.apollographql.com'];
     const corsOptions = {
-        origin: " http://localhost:3000",
         credentials: true,
+        origin: function (origin, callback) {
+            if (!origin)
+                return callback(null, true);
+            if (allowedOrigins.indexOf(origin) === -1) {
+                var msg = 'The CORS policy for this site does not ' +
+                    'allow access from the specified Origin.';
+                return callback(new Error(msg), false);
+            }
+            return callback(null, true);
+        }
     };
     app.use((0, cors_1.default)(corsOptions));
     const orm = await core_1.MikroORM.init(mikro_orm_config_1.default);
@@ -28,7 +39,7 @@ const main = async () => {
     const RedisStore = (0, connect_redis_1.default)(express_session_1.default);
     const redisClient = redis_1.default.createClient();
     app.use((0, express_session_1.default)({
-        name: 'deeznuts',
+        name: 'qid',
         secret: 'keyboard cat',
         resave: false,
         saveUninitialized: false,
