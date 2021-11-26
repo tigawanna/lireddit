@@ -7,6 +7,7 @@ function Navbar() {
 
     const [result, reexecuteQuery] = useQuery({
         query: whoami,
+        
      });
     const { data, fetching, error } = result;
       if (fetching) return <p>Loading...</p>;

@@ -91,22 +91,22 @@ async Me(
 
     try {
       await em.persistAndFlush(user);
-      req.session.userId=666
-    } catch (e) {
+     } catch (e) {
       console.log("an error occured  ", e);
-      if (e.detail.includes("already exists")) {
-        console.log("username exist");
-        return {
-          errors: [
-            {
-              field: "username",
-              message: "that username is already taken",
-            },
-          ],
-        };
-      }else{
-          console.log("something is wrong with the register user mutation",e)
-      }
+      // if (e.detail.includes("already exists")) {
+      //   console.log("username exist");
+      //   return {
+      //     errors: [
+      //       {
+      //         field: "username",
+      //         message: "that username is already taken",
+      //       },
+      //     ],
+      //   };
+      // }
+      // else{
+      //     console.log("something is wrong with the register user mutation",e)
+      // }
     }
    //set cookie to keep user logged in
     req.session.userId=user._id

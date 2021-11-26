@@ -37,14 +37,17 @@ const handleChange = (evt) => {
       console.log(input)
      if( validator(input,setError)){
       login(input).then(s=>{
-        console.log("stuffing success ",s.data.loginUser)
-        if(s.data.loginUser.errors){
-          graphError(s.data.loginUser.errors,setError)
-        }else{
-          router.push('/')
-        }
+        console.log("stuffing success ",s)
+        // if(s.data.loginUser.errors){
+        //   graphError(s.data.loginUser.errors,setError)
+        //   console.log("errors present no home")
+        // }else{
+        //   console.log("lets take you home")
+        //   router.push('/')
+        // }
+                  router.push('/')
       }).catch(e=>{
-        console.log("error registering user  ",e)
+        console.log("error logging in  user  ",e)
     })
      }
 

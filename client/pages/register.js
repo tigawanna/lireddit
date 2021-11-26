@@ -2,10 +2,13 @@ import { useState } from "react"
 import { graphError, validator } from './../helper/helper';
 import styles from '../styles/Register.module.css'
 import { useMutation,gql } from "urql";
+import { useRouter } from "next/dist/client/router";
 
 function Register() {
 const [input, setInput] = useState( {username:"",password:""} )
 const [inerror, setError] = useState({nameError:"",passwordError:""})
+
+const route=useRouter()
 
 const REGISTER_MUTATION=gql`
 mutation Register($username:String!,$password:String!){
@@ -42,7 +45,10 @@ const handleSubmit=(e)=>{
       console.log("stuffing success ",s.data.registerUser)
       if(s.data.registerUser.errors){
         graphError(s.data.registerUser.errors,setError)
+      }else{
+        route.push('/')
       }
+      
     }).catch(e=>{
       console.log("error registering user  ",e)
   })

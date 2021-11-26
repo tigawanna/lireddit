@@ -95,24 +95,9 @@ let UserResolver = class UserResolver {
         });
         try {
             await em.persistAndFlush(user);
-            req.session.userId = 666;
         }
         catch (e) {
             console.log("an error occured  ", e);
-            if (e.detail.includes("already exists")) {
-                console.log("username exist");
-                return {
-                    errors: [
-                        {
-                            field: "username",
-                            message: "that username is already taken",
-                        },
-                    ],
-                };
-            }
-            else {
-                console.log("something is wrong with the register user mutation", e);
-            }
         }
         req.session.userId = user._id;
         return {
