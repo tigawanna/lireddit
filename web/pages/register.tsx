@@ -3,40 +3,16 @@
 import { useState } from "react"
 import { validator } from './../helper/helper';
 import styles from '../styles/Register.module.css'
-import { useMutation } from "urql";
+import { useRegisterMutation } from "../src/generated/graphql";
 
 function Register() {
 const [input, setInput] = useState( {username:"",password:""} )
 const [inerror, setError] = useState({nameError:"",passwordError:""})
 
-const REGISTER_MUTATION=`
-mutation Register($username:String!,$password:String!){
-    registerUser(options:{username:$username,password:$password}){
-      user{
-        username
-      }errors {
-        field
-        message
-      }
-    }
-    }
-    
-    `
 
-    const GEG=`
-    mutation registerUser($options: UsernamePasswordInput!){
-        registerUser(options:{username:"benitos",password:"12345"}){
-          user{
-           
-          username
-          }errors {
-            field
-            message
-          }
-        }
-        }`
+
     
-const[{error},register]=useMutation(REGISTER_MUTATION)
+const[{error},register]=useRegisterMutation()
 console.log("graph ql error  ",JSON.stringify(error))
 const handleChange = (evt) => {
     const value = evt.target.value;

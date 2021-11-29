@@ -4,8 +4,9 @@ import { createClient, dedupExchange, fetchExchange, Query, Provider } from 'urq
 import { cacheExchange } from '@urql/exchange-graphcache';
 import {whoami} from '../helper/graph'
 
-const cache = cacheExchange({
 
+
+const cache = cacheExchange({
   updates: {
     Mutation: { 
       loginUser: (result, _args, cache) => {

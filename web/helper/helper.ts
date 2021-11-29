@@ -1,4 +1,4 @@
-export const validator=(field: { username: any; password: string | any[]; },setError: (arg0: { passwordError: string; nameError: string; }) => void)=>{
+export const validator=(field:any,setError:any)=>{
     let nameError = "";
         let passwordError = "";
         // let passwordError = "";
@@ -24,4 +24,27 @@ export const validator=(field: { username: any; password: string | any[]; },setE
         }
     
         return true;
+}
+
+export const graphError=(field:any,setError:any)=>{
+
+const theerror=field;
+   if(theerror!==undefined){
+      const newerror =theerror[0]
+      if(newerror){
+      if(newerror.field==="username"){
+        setError({nameError:newerror.message})
+      }
+      if(newerror.field==="password"){
+        setError({passwordError:newerror.message})
+      }
+      }
+      console.log(newerror.field)
+
+     }
+     else{
+       console.log("nope")
+     }
+    //  setError()
+   
 }

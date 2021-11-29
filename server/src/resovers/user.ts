@@ -11,6 +11,9 @@ import {
 import argon2 from "argon2";
 import MyContex from "./../types";
 import { User } from "./../entities/User";
+import { COOKIE_NAME } from '../constants';
+
+
 
 
 
@@ -93,20 +96,20 @@ async Me(
       await em.persistAndFlush(user);
      } catch (e) {
       console.log("an error occured  ", e);
-      // if (e.detail.includes("already exists")) {
-      //   console.log("username exist");
-      //   return {
-      //     errors: [
-      //       {
-      //         field: "username",
-      //         message: "that username is already taken",
-      //       },
-      //     ],
-      //   };
-      // }
-      // else{
-      //     console.log("something is wrong with the register user mutation",e)
-      // }
+      if (e.detail.includes("already exists")) {
+        console.log("username exist");
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "that username is already taken",
+            },
+          ],
+        };
+      }
+      else{
+          console.log("something is wrong with the register user mutation",e)
+      }
     }
    //set cookie to keep user logged in
     req.session.userId=user._id
@@ -149,4 +152,25 @@ async Me(
       user,
     };
   }
+
+ @Mutation(() => Boolean)
+  logoutUser(@Ctx() { req,res }: MyContex){
+   return new Promise (resolve=>req.session.destroy(err=>{
+    res.clearCookie(COOKIE_NAME)
+    if(err){
+      console.log("error clearing redis session",err)
+      resolve(false)
+      return
+    }
+     resolve(true)
+  }))
+  
+  }
+
 }
+
+
+
+
+
+

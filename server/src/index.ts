@@ -18,6 +18,7 @@ import connectRedis from 'connect-redis'
 // import {connect} from 'http2'
 import MyContex from './types';
 import { cors } from 'cors';
+import { COOKIE_NAME } from './constants';
 
 
 const app=express();
@@ -41,11 +42,11 @@ app.use(cors(corsOptions))
 const orm=await MikroORM.init(mikroOrmConfig);
 await orm.getMigrator().up();
 
-const RedisStore =connectRedis(session)
-const redisClient = redis.createClient()
+// const RedisStore =connectRedis(session)
+// const redisClient = redis.createClient()
 
 app.use(session({
-  name:'qid',
+  name:COOKIE_NAME,
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: false,
@@ -56,10 +57,10 @@ app.use(session({
     sameSite:"lax",
     maxAge:1000*60*60*24*365*10,
   },
-  store: new RedisStore({ 
-    client: redisClient,
-    disableTouch:true,
-}),
+//   store: new RedisStore({ 
+//     client: redisClient,
+//     disableTouch:true,
+// }),
 }))
 
 
