@@ -19,11 +19,14 @@ import connectRedis from 'connect-redis'
 import MyContex from './types';
 import { cors } from 'cors';
 import { COOKIE_NAME } from './constants';
+import { sendEmail } from './utils/sendEmail';
+import { User } from './entities/User';
 
 
 const app=express();
 const main= async ()=>{
-  
+  // sendEmail('bosmaen@yandex.com','hello there')
+
   const allowedOrigins = ['http://localhost:3000',
   'https://studio.apollographql.com'];
   const corsOptions = {
@@ -40,7 +43,9 @@ const main= async ()=>{
   }
 app.use(cors(corsOptions))  
 const orm=await MikroORM.init(mikroOrmConfig);
+// await orm.em.nativeDelete(User,{})
 await orm.getMigrator().up();
+
 
 // const RedisStore =connectRedis(session)
 // const redisClient = redis.createClient()

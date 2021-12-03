@@ -3,7 +3,6 @@ import {
   Mutation,
   Ctx,
   Arg,
-  InputType,
   Field,
   ObjectType,
   Query,
@@ -12,18 +11,10 @@ import argon2 from "argon2";
 import MyContex from "./../types";
 import { User } from "./../entities/User";
 import { COOKIE_NAME } from '../constants';
+import { UsernamePasswordInput } from "./UsernamePasswordInput";
+import { validateRegister } from './../utils/validateRegister';
+import { sendEmail } from '../utils/sendEmail';
 
-
-
-
-
-@InputType()
-class UsernamePasswordInput {
-  @Field()
-  username: string;
-  @Field()
-  password: string;
-}
 
 @ObjectType()
 class FieldError {
@@ -59,44 +50,50 @@ async Me(
   return user
 }
 
+ 
+@Mutation(()=>Boolean)
+async forgotPassword(
+  @Arg('email') email:string,
+  @Ctx() {em }: MyContex 
+){
+const user=await em.findOne(User,{email})
+if(!user){
+  console.log("no such email found")
+  return true
+}
+
+const token="iamtoken"
+
+await sendEmail(email,
+  `<a href="http://localhost:3000/change-password/${token}">reset apssword</a>`)
+
+return true
+}
 
   @Mutation(() => UserResponse)
   async registerUser(
     @Arg("options") options: UsernamePasswordInput,
     @Ctx() { em,req }: MyContex
   ): Promise<UserResponse> {
-    if (options.username.length <= 2) {
-      return {
-        errors: [
-          {
-            field: "username",
-            message: "username length must be greater than 2",
-          },
-        ],
-      };
-    }
-    if (options.password.length <= 3) {
-     
-      return {
-        errors: [
-          {
-            field: "password",
-            message: "password length must be greater than 3",
-          },
-        ],
-      };
-    }
+  const errors= validateRegister(options)
+  if(errors){
+    return {errors}
+  }
     const hashedPassword = await argon2.hash(options.password);
-    const user = await em.create(User, {
+    
+    const  user = await em.create(User, {
       username: options.username,
       password: hashedPassword,
+      email:options.email,
+      createdAt:new Date(),
+      updatedAt:new Date()
     });
 
     try {
       await em.persistAndFlush(user);
      } catch (e) {
-      console.log("an error occured  ", e);
-      if (e.detail.includes("already exists")) {
+      console.log("an error occured  ", e.constraint);
+      if (e.constraint==="user_username_unique") {
         console.log("username exist");
         return {
           errors: [
@@ -107,8 +104,16 @@ async Me(
           ],
         };
       }
-      else{
-          console.log("something is wrong with the register user mutation",e)
+      if (e.constraint==="user_email_unique") {
+        console.log("email exist");
+        return {
+          errors: [
+            {
+              field: "email",
+              message: "that email is already taken",
+            },
+          ],
+        };
       }
     }
    //set cookie to keep user logged in
@@ -122,21 +127,50 @@ async Me(
 
   @Mutation(() => UserResponse)
   async loginUser(
-    @Arg("options") options: UsernamePasswordInput,
+  @Arg('usernameOrEmail') usernameOrEmail:string,
+  @Arg('password') password:string,
     @Ctx() { em,req }: MyContex
   ): Promise<UserResponse> {
-    const user = await em.findOne(User, { username: options.username });
+    const method= usernameOrEmail.includes('@')?"email":"username"
+    
+    const user = await em.findOne(User, 
+       usernameOrEmail.includes('@')?
+       {email:usernameOrEmail}:{username:usernameOrEmail}
+       );
+    console.log("user tried to ogin ",user)   
     if (!user) {
+      if(method==="username"){
+        return {
+          errors: [
+            {
+              field: "username",
+              message: "that username doesn't exist in our records",
+            },
+          ],
+        };
+      }
+
+      if(method==="email"){
+        return {
+          errors: [
+            {
+              field: "email",
+              message: "that email doesn't exist in our records",
+            },
+          ],
+        };
+      }
       return {
         errors: [
           {
             field: "username",
-            message: "that username doesn't exist in our records",
+            message: "that doesn't exist in our records",
           },
         ],
       };
+
     }
-    const valid = await argon2.verify(user.password, options.password);
+    const valid = await argon2.verify(user.password,password);
     if (!valid) {
       return {
         errors: [

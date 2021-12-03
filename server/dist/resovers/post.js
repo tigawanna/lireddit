@@ -15,8 +15,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PostResolver = void 0;
 const type_graphql_1 = require("type-graphql");
 const Posts_1 = require("./../entities/Posts");
+const sleep_1 = require("../utils/sleep");
 let PostResolver = class PostResolver {
-    posts({ em }) {
+    async posts({ em }) {
+        await (0, sleep_1.sleep)(0);
         return em.find(Posts_1.Post, {});
     }
     post(_id, { em }) {
