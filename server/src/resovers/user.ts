@@ -14,6 +14,8 @@ import { COOKIE_NAME } from '../constants';
 import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from './../utils/validateRegister';
 import { sendEmail } from '../utils/sendEmail';
+import {v4} from 'uuid'
+import { FORGET_PASSWORD_PREFIX } from './../constants';
 
 
 @ObjectType()
@@ -50,11 +52,65 @@ async Me(
   return user
 }
 
+@Mutation(() => UserResponse)
+async changePassword(
+ @Arg('token') token:string,
+ @Arg('newpassword') newpassword:string,
+  @Ctx() {em,redis,req}: MyContex 
+): Promise<UserResponse>{
+  if (newpassword.length<4) {
+   
+    return {
+      errors: [
+        {
+          field: "newpassword",
+          message: "password too short",
+        },
+      ],
+    };
+  }
+  const key=FORGET_PASSWORD_PREFIX+token
+  const userID=await redis.get(key)
+  if(!userID){
+    return {
+      errors: [
+        {
+          field: "token",
+          message: "token expired",
+        },
+      ],
+    };
+  }
+
+  const user=await em.findOne(User,{_id:parseInt(userID)})
+
+  if(!user){
+    return {
+      errors: [
+        {
+          field: "token",
+          message: "user no longer exists",
+        },
+      ],
+    };
+  }
+
+user.password=await argon2.hash(newpassword);
+    await em.persistAndFlush(user)
+
+   redis.del(key) 
+//login user after password reset
+// req.session.userId=user._id
+return{
+  user
+}
+
+}
  
 @Mutation(()=>Boolean)
 async forgotPassword(
   @Arg('email') email:string,
-  @Ctx() {em }: MyContex 
+  @Ctx() {em,redis}: MyContex 
 ){
 const user=await em.findOne(User,{email})
 if(!user){
@@ -62,7 +118,12 @@ if(!user){
   return true
 }
 
-const token="iamtoken"
+const token=v4();
+await redis.set(FORGET_PASSWORD_PREFIX+token,
+  user._id,
+  'ex',
+  1000*60*60*24*3 //3days
+  )
 
 await sendEmail(email,
   `<a href="http://localhost:3000/change-password/${token}">reset apssword</a>`)

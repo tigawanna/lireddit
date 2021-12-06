@@ -11,7 +11,7 @@ import { PostResolver } from './resovers/post';
 import { UserResolver } from './resovers/user';
 
 import cors, { CorsOptions } from 'cors'
-import redis from 'redis';
+import Redis from 'ioredis';
 import session from 'express-session';
 
 import connectRedis from 'connect-redis'
@@ -21,12 +21,20 @@ import { cors } from 'cors';
 import { COOKIE_NAME } from './constants';
 import { sendEmail } from './utils/sendEmail';
 import { User } from './entities/User';
+import {createConnection} from 'typeorm'
+
 
 
 const app=express();
 const main= async ()=>{
   // sendEmail('bosmaen@yandex.com','hello there')
 
+  const conn=createConnection({
+    type:'postgres',
+    database:'lireddit2',
+    username:'postgres',
+     password:'password',
+  })
   const allowedOrigins = ['http://localhost:3000',
   'https://studio.apollographql.com'];
   const corsOptions = {
@@ -47,8 +55,9 @@ const orm=await MikroORM.init(mikroOrmConfig);
 await orm.getMigrator().up();
 
 
-// const RedisStore =connectRedis(session)
+const RedisStore =connectRedis(session)
 // const redisClient = redis.createClient()
+const redis = new Redis();
 
 app.use(session({
   name:COOKIE_NAME,
@@ -62,10 +71,10 @@ app.use(session({
     sameSite:"lax",
     maxAge:1000*60*60*24*365*10,
   },
-//   store: new RedisStore({ 
-//     client: redisClient,
-//     disableTouch:true,
-// }),
+  store: new RedisStore({ 
+    client: redis,
+    disableTouch:true,
+}),
 }))
 
 
@@ -75,7 +84,7 @@ schema:await buildSchema({
     resolvers:[helloResolver,PostResolver,UserResolver],
     validate:false
 }),
-context:({req,res}):MyContex=>({em:orm.em,req,res})
+context:({req,res}):MyContex=>({em:orm.em,req,res,redis})
 });
 await apolloServer.start()
 apolloServer.applyMiddleware({app,cors:corsOptions});
