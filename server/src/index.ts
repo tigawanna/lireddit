@@ -22,19 +22,27 @@ import { COOKIE_NAME } from './constants';
 import { sendEmail } from './utils/sendEmail';
 import { User } from './entities/User';
 import {createConnection} from 'typeorm'
+import { Post } from './entities/Posts';
 
 
 
 const app=express();
 const main= async ()=>{
-  // sendEmail('bosmaen@yandex.com','hello there')
 
-  const conn=createConnection({
+
+  const conn=await createConnection({
     type:'postgres',
     database:'lireddit2',
     username:'postgres',
      password:'password',
+     logging:true,
+     synchronize:true,
+     entities:[Post,User]
+
   })
+
+  // await User.delete({})
+
   const allowedOrigins = ['http://localhost:3000',
   'https://studio.apollographql.com'];
   const corsOptions = {
@@ -50,13 +58,12 @@ const main= async ()=>{
     }
   }
 app.use(cors(corsOptions))  
-const orm=await MikroORM.init(mikroOrmConfig);
-// await orm.em.nativeDelete(User,{})
-await orm.getMigrator().up();
+
+
+
 
 
 const RedisStore =connectRedis(session)
-// const redisClient = redis.createClient()
 const redis = new Redis();
 
 app.use(session({
@@ -84,7 +91,7 @@ schema:await buildSchema({
     resolvers:[helloResolver,PostResolver,UserResolver],
     validate:false
 }),
-context:({req,res}):MyContex=>({em:orm.em,req,res,redis})
+context:({req,res}):MyContex=>({req,res,redis})
 });
 await apolloServer.start()
 apolloServer.applyMiddleware({app,cors:corsOptions});

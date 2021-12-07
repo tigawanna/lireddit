@@ -16,6 +16,7 @@ import { validateRegister } from './../utils/validateRegister';
 import { sendEmail } from '../utils/sendEmail';
 import {v4} from 'uuid'
 import { FORGET_PASSWORD_PREFIX } from './../constants';
+import { getConnection } from "typeorm";
 
 
 @ObjectType()
@@ -40,23 +41,23 @@ class UserResponse {
 export class UserResolver {
 
 @Query(()=>User,{nullable:true})
-async Me(
-  @Ctx() { req ,em}: MyContex
+Me(
+  @Ctx() { req }: MyContex
 
 ){
   if(!req.session.userId){
     console.log("you're not logged in")
     return null
   }
-  const user=await em.findOne(User,{_id:req.session.userId})
-  return user
+return User.findOne(req.session.userId)
+
 }
 
 @Mutation(() => UserResponse)
 async changePassword(
  @Arg('token') token:string,
  @Arg('newpassword') newpassword:string,
-  @Ctx() {em,redis,req}: MyContex 
+  @Ctx() {redis}: MyContex 
 ): Promise<UserResponse>{
   if (newpassword.length<4) {
    
@@ -81,8 +82,8 @@ async changePassword(
       ],
     };
   }
-
-  const user=await em.findOne(User,{_id:parseInt(userID)})
+const useridNum=parseInt(userID)
+ const user=await User.findOne(useridNum)
 
   if(!user){
     return {
@@ -94,9 +95,8 @@ async changePassword(
       ],
     };
   }
-
-user.password=await argon2.hash(newpassword);
-    await em.persistAndFlush(user)
+await User.update({_id:useridNum},
+      {password:await argon2.hash(newpassword)})
 
    redis.del(key) 
 //login user after password reset
@@ -106,13 +106,15 @@ return{
 }
 
 }
+
+
  
 @Mutation(()=>Boolean)
 async forgotPassword(
   @Arg('email') email:string,
-  @Ctx() {em,redis}: MyContex 
+  @Ctx() {redis}: MyContex 
 ){
-const user=await em.findOne(User,{email})
+const user=await User.findOne({where :{email}})
 if(!user){
   console.log("no such email found")
   return true
@@ -124,17 +126,19 @@ await redis.set(FORGET_PASSWORD_PREFIX+token,
   'ex',
   1000*60*60*24*3 //3days
   )
-
 await sendEmail(email,
   `<a href="http://localhost:3000/change-password/${token}">reset apssword</a>`)
 
 return true
 }
 
+
+
+
   @Mutation(() => UserResponse)
   async registerUser(
     @Arg("options") options: UsernamePasswordInput,
-    @Ctx() { em,req }: MyContex
+    @Ctx() { req }: MyContex
   ): Promise<UserResponse> {
   const errors= validateRegister(options)
   if(errors){
@@ -142,18 +146,32 @@ return true
   }
     const hashedPassword = await argon2.hash(options.password);
     
-    const  user = await em.create(User, {
-      username: options.username,
-      password: hashedPassword,
-      email:options.email,
-      createdAt:new Date(),
-      updatedAt:new Date()
-    });
-
+    let user;
     try {
-      await em.persistAndFlush(user);
+      // User.create({
+      //   username: options.username,
+      //   password: hashedPassword,
+      //   email:options.email,
+      // }).save()
+
+    const result =await getConnection()
+    .createQueryBuilder()
+    .insert()
+    .into(User)
+    .values(
+      {
+        username: options.username,
+        password: hashedPassword,
+        email:options.email,
+      }
+    )
+    .returning('*')
+    .execute()
+    user=result.raw[0]
+    // console.log("returning result  ",result)
+   
      } catch (e) {
-      console.log("an error occured  ", e.constraint);
+      console.log("an error occured  ", e);
       if (e.constraint==="user_username_unique") {
         console.log("username exist");
         return {
@@ -190,13 +208,13 @@ return true
   async loginUser(
   @Arg('usernameOrEmail') usernameOrEmail:string,
   @Arg('password') password:string,
-    @Ctx() { em,req }: MyContex
+    @Ctx() { req }: MyContex
   ): Promise<UserResponse> {
     const method= usernameOrEmail.includes('@')?"email":"username"
     
-    const user = await em.findOne(User, 
+    const user = await User.findOne( 
        usernameOrEmail.includes('@')?
-       {email:usernameOrEmail}:{username:usernameOrEmail}
+       {where:{email:usernameOrEmail}}:{where: {username:usernameOrEmail}}
        );
     console.log("user tried to ogin ",user)   
     if (!user) {

@@ -1,34 +1,49 @@
-import {Resolver,Query,Mutation,Ctx,Arg,Int} from 'type-graphql'
+import {Resolver,Query,Mutation,Arg,Int, InputType, Field, Ctx, UseMiddleware} from 'type-graphql'
 import { Post } from './../entities/Posts';
-import MyContex from './../types';
 import { sleep } from '../utils/sleep';
+import MyContex from './../types';
+import { isAuth } from './../middleware/isAuth';
+
+
+@InputType()
+class PostInput{
+ @Field()
+ title: string;
+ @Field()
+ text: string;
+}
 
 
 @Resolver()
 export class PostResolver{
 
+
+
+
 @Query(()=>[Post])
-async posts(
-@Ctx() {em}:MyContex) :Promise<Post[]>{
+async posts():Promise<Post[]>{
    await sleep(0)
-   return em.find(Post,{})
+   return Post.find()
 }
 
 @Query(()=>Post,{nullable:true})
 post(
 @Arg('id',()=>Int) _id:number,
-@Ctx() {em}:MyContex) :Promise<Post|null>{
-   return em.findOne(Post,{_id})
+) :Promise<Post|null|undefined>{
+   return Post.findOne(_id)
 }
 
 @Mutation(()=>Post)
+@UseMiddleware(isAuth)
 async createPost(
-@Arg('title',()=>String) title:String,
-@Ctx() {em,req}:MyContex) :Promise<Post>{
-req.session.deeznuts="blue"
-const post= em.create(Post,{title})
-await em.persistAndFlush(post)
- return post
+@Arg('input')input:PostInput,
+@Ctx() {req}:MyContex
+) :Promise<Post>{
+return Post.create(
+   {...input,
+   creatorId:req.session.userId,
+   }
+   ).save()
 }
 
 
@@ -36,15 +51,14 @@ await em.persistAndFlush(post)
 async updatePost(
 @Arg('id',()=>Int) _id:number,
 @Arg('title',()=>String,{nullable:true}) title:String,
-@Ctx() {em}:MyContex) :Promise<Post|null>{
-const post= await em.findOne(Post,{_id})
+) :Promise<Post|null|undefined>{
+const post= await Post.findOne(_id);
 if(!post){
 return null
 }
 if(typeof title!=="undefined"){
 post.title=title
-await em.persistAndFlush(post)
-
+await Post.update({_id},{title})
 }
  return post
 }
@@ -54,8 +68,8 @@ await em.persistAndFlush(post)
 @Mutation(()=>Boolean)
 async deletePost(
 @Arg('id',()=>Int) _id:number,
-@Ctx() {em}:MyContex) :Promise<boolean>{
-await em.nativeDelete(Post,{_id})
+) :Promise<boolean>{
+await Post.delete(_id)
 return true
 
 }

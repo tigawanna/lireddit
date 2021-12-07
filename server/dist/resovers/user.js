@@ -25,6 +25,7 @@ const validateRegister_1 = require("./../utils/validateRegister");
 const sendEmail_1 = require("../utils/sendEmail");
 const uuid_1 = require("uuid");
 const constants_2 = require("./../constants");
+const typeorm_1 = require("typeorm");
 let FieldError = class FieldError {
 };
 __decorate([
@@ -52,15 +53,14 @@ UserResponse = __decorate([
     (0, type_graphql_1.ObjectType)()
 ], UserResponse);
 let UserResolver = class UserResolver {
-    async Me({ req, em }) {
+    Me({ req }) {
         if (!req.session.userId) {
             console.log("you're not logged in");
             return null;
         }
-        const user = await em.findOne(User_1.User, { _id: req.session.userId });
-        return user;
+        return User_1.User.findOne(req.session.userId);
     }
-    async changePassword(token, newpassword, { em, redis, req }) {
+    async changePassword(token, newpassword, { redis }) {
         if (newpassword.length < 4) {
             return {
                 errors: [
@@ -83,7 +83,8 @@ let UserResolver = class UserResolver {
                 ],
             };
         }
-        const user = await em.findOne(User_1.User, { _id: parseInt(userID) });
+        const useridNum = parseInt(userID);
+        const user = await User_1.User.findOne(useridNum);
         if (!user) {
             return {
                 errors: [
@@ -94,15 +95,14 @@ let UserResolver = class UserResolver {
                 ],
             };
         }
-        user.password = await argon2_1.default.hash(newpassword);
-        await em.persistAndFlush(user);
+        await User_1.User.update({ _id: useridNum }, { password: await argon2_1.default.hash(newpassword) });
         redis.del(key);
         return {
             user
         };
     }
-    async forgotPassword(email, { em, redis }) {
-        const user = await em.findOne(User_1.User, { email });
+    async forgotPassword(email, { redis }) {
+        const user = await User_1.User.findOne({ where: { email } });
         if (!user) {
             console.log("no such email found");
             return true;
@@ -112,24 +112,29 @@ let UserResolver = class UserResolver {
         await (0, sendEmail_1.sendEmail)(email, `<a href="http://localhost:3000/change-password/${token}">reset apssword</a>`);
         return true;
     }
-    async registerUser(options, { em, req }) {
+    async registerUser(options, { req }) {
         const errors = (0, validateRegister_1.validateRegister)(options);
         if (errors) {
             return { errors };
         }
         const hashedPassword = await argon2_1.default.hash(options.password);
-        const user = await em.create(User_1.User, {
-            username: options.username,
-            password: hashedPassword,
-            email: options.email,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        });
+        let user;
         try {
-            await em.persistAndFlush(user);
+            const result = await (0, typeorm_1.getConnection)()
+                .createQueryBuilder()
+                .insert()
+                .into(User_1.User)
+                .values({
+                username: options.username,
+                password: hashedPassword,
+                email: options.email,
+            })
+                .returning('*')
+                .execute();
+            user = result.raw[0];
         }
         catch (e) {
-            console.log("an error occured  ", e.constraint);
+            console.log("an error occured  ", e);
             if (e.constraint === "user_username_unique") {
                 console.log("username exist");
                 return {
@@ -158,10 +163,10 @@ let UserResolver = class UserResolver {
             user,
         };
     }
-    async loginUser(usernameOrEmail, password, { em, req }) {
+    async loginUser(usernameOrEmail, password, { req }) {
         const method = usernameOrEmail.includes('@') ? "email" : "username";
-        const user = await em.findOne(User_1.User, usernameOrEmail.includes('@') ?
-            { email: usernameOrEmail } : { username: usernameOrEmail });
+        const user = await User_1.User.findOne(usernameOrEmail.includes('@') ?
+            { where: { email: usernameOrEmail } } : { where: { username: usernameOrEmail } });
         console.log("user tried to ogin ", user);
         if (!user) {
             if (method === "username") {
@@ -226,7 +231,7 @@ __decorate([
     __param(0, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], UserResolver.prototype, "Me", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => UserResponse),
