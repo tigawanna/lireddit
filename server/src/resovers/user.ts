@@ -98,7 +98,7 @@ const useridNum=parseInt(userID)
 await User.update({_id:useridNum},
       {password:await argon2.hash(newpassword)})
 
-   redis.del(key) 
+   redis.del(key) ;
 //login user after password reset
 // req.session.userId=user._id
 return{
