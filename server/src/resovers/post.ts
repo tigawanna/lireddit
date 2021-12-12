@@ -1,8 +1,9 @@
-import {Resolver,Query,Mutation,Arg,Int, InputType, Field, Ctx, UseMiddleware} from 'type-graphql'
+import {Resolver,Query,Mutation,Arg,Int, InputType, Field, Ctx, UseMiddleware, FieldResolver, Root} from 'type-graphql'
 import { Post } from './../entities/Posts';
 import { sleep } from '../utils/sleep';
 import MyContex from './../types';
 import { isAuth } from './../middleware/isAuth';
+import { getConnection } from 'typeorm';
 
 
 @InputType()
@@ -14,18 +15,39 @@ class PostInput{
 }
 
 
-@Resolver()
+@Resolver(Post)
 export class PostResolver{
 
+@FieldResolver(()=>String)
+textSnippet(@Root() root:Post){
+return root.text.slice(0,50)
+}   
 
-
-
+//fetch all posts
 @Query(()=>[Post])
-async posts():Promise<Post[]>{
-   await sleep(0)
-   return Post.find()
-}
 
+async posts(
+   @Arg('limit',()=>Int)limit:number,
+   @Arg('cursor',()=>String,{nullable:true})cursor:string | null,
+):Promise<Post[]>{
+await sleep(0)
+const reallimit=Math.min(50,limit)
+
+  const qb= getConnection()
+    .getRepository(Post)
+    .createQueryBuilder("p")
+    .orderBy('"createdAt"',"DESC")
+    .take(reallimit)
+
+    if(cursor){
+    qb.where('"createdAt" < :cursor', 
+    { cursor:new Date(parseInt(cursor))})
+    }
+   
+    return qb.getMany()
+    }
+
+//fetch one post by id
 @Query(()=>Post,{nullable:true})
 post(
 @Arg('id',()=>Int) _id:number,
@@ -33,6 +55,7 @@ post(
    return Post.findOne(_id)
 }
 
+//create new post
 @Mutation(()=>Post)
 @UseMiddleware(isAuth)
 async createPost(
@@ -46,7 +69,7 @@ return Post.create(
    ).save()
 }
 
-
+//update a post
 @Mutation(()=>Post,{nullable:true})
 async updatePost(
 @Arg('id',()=>Int) _id:number,
@@ -64,7 +87,7 @@ await Post.update({_id},{title})
 }
 
 
-
+//delete a post
 @Mutation(()=>Boolean)
 async deletePost(
 @Arg('id',()=>Int) _id:number,

@@ -23,6 +23,7 @@ import { sendEmail } from './utils/sendEmail';
 import { User } from './entities/User';
 import {createConnection} from 'typeorm'
 import { Post } from './entities/Posts';
+import path from "path"
 
 
 
@@ -37,10 +38,12 @@ const main= async ()=>{
      password:'password',
      logging:true,
      synchronize:true,
+     migrations:[path.join(__dirname,"./migrations/*")],
      entities:[Post,User]
 
   })
 
+  // await conn.runMigrations();
   // await User.delete({})
 
   const allowedOrigins = ['http://localhost:3000',
