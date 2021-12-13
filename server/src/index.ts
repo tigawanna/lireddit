@@ -44,7 +44,8 @@ const main= async ()=>{
   })
 
   // await conn.runMigrations();
-  // await User.delete({})
+  // await Post.delete({});
+
 
   const allowedOrigins = ['http://localhost:3000',
   'https://studio.apollographql.com'];

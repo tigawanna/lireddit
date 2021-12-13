@@ -1,4 +1,5 @@
-import {Resolver,Query,Mutation,Arg,Int, InputType, Field, Ctx, UseMiddleware, FieldResolver, Root} from 'type-graphql'
+import {Resolver,Query,Mutation,Arg,Int, InputType,
+    Field, Ctx, UseMiddleware, FieldResolver, Root,ObjectType} from 'type-graphql'
 import { Post } from './../entities/Posts';
 import { sleep } from '../utils/sleep';
 import MyContex from './../types';
@@ -14,6 +15,14 @@ class PostInput{
  text: string;
 }
 
+@ObjectType()
+class PaginatedPosts{
+@Field(()=>[Post])
+posts:Post[]
+@Field()
+hasMore:boolean
+}
+
 
 @Resolver(Post)
 export class PostResolver{
@@ -24,28 +33,31 @@ return root.text.slice(0,50)
 }   
 
 //fetch all posts
-@Query(()=>[Post])
-
+@Query(()=>PaginatedPosts)
 async posts(
    @Arg('limit',()=>Int)limit:number,
    @Arg('cursor',()=>String,{nullable:true})cursor:string | null,
-):Promise<Post[]>{
+):Promise<PaginatedPosts>{
 await sleep(0)
 const reallimit=Math.min(50,limit)
+const realLimitplusOne=reallimit+1
 
   const qb= getConnection()
     .getRepository(Post)
     .createQueryBuilder("p")
     .orderBy('"createdAt"',"DESC")
-    .take(reallimit)
+    .take(realLimitplusOne)
 
     if(cursor){
     qb.where('"createdAt" < :cursor', 
     { cursor:new Date(parseInt(cursor))})
     }
-   
-    return qb.getMany()
-    }
+   const posts=await qb.getMany()
+   const hasMore=posts.length===realLimitplusOne
+
+    return {posts:posts.slice(1,reallimit),hasMore}
+
+   }
 
 //fetch one post by id
 @Query(()=>Post,{nullable:true})
