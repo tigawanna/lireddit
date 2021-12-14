@@ -52,9 +52,11 @@ const posts = await getConnection().query(
   `
 select p.*,
 json_build_object(
-   'id',u._id,
+   '_id',u._id,
    'username', u.username,
-   'email', u.email
+   'email', u.email,
+   'updateAt', u."updatedAt",
+   'createdAt', u."createdAt"
    ) creator
 from post p
 inner join public.user u on u._id=p."creatorId"
