@@ -32,6 +32,7 @@ textSnippet(@Root() root:Post){
 return root.text.slice(0,50)
 }   
 
+
 //fetch all posts
 @Query(()=>PaginatedPosts)
 async posts(
@@ -67,7 +68,7 @@ limit $1
   replacements
 );
 
-console.log("posts ",posts)
+// console.log("posts ",posts)
 //   const qb= getConnection()
 //     .getRepository(Post)
 //     .createQueryBuilder("p")

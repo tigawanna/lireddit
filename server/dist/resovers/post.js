@@ -71,7 +71,6 @@ ${cursor ? `where p."createdAt" < $2` : ""}
 order by p."createdAt" DESC
 limit $1
 `, replacements);
-        console.log("posts ", posts);
         const hasMore = posts.length === reaLimitPlusOne;
         return { posts: posts.slice(1, reallimit), hasMore };
     }

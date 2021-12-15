@@ -6,6 +6,8 @@ import {
   Field,
   ObjectType,
   Query,
+  FieldResolver,
+  Root,
 } from "type-graphql";
 import argon2 from "argon2";
 import MyContex from "./../types";
@@ -37,14 +39,21 @@ class UserResponse {
   user?: User;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+
+  
+@FieldResolver(()=>String)
+email(@Root() user:User ,   @Ctx() { req }: MyContex){
+  console.log("from email resolver",req.session.userId)
+return user.email
+}
 
 @Query(()=>User,{nullable:true})
 Me(
   @Ctx() { req }: MyContex
-
 ){
+  console.log("from me query",req.session.userId)
   if(!req.session.userId){
     console.log("you're not logged in")
     return null
