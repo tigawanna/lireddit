@@ -5,6 +5,7 @@ import { sleep } from '../utils/sleep';
 import MyContex from './../types';
 import { isAuth } from './../middleware/isAuth';
 import { getConnection } from 'typeorm';
+import { Updoot } from './../entities/Updoot';
 
 
 @InputType()
@@ -68,27 +69,8 @@ limit $1
   replacements
 );
 
-// console.log("posts ",posts)
-//   const qb= getConnection()
-//     .getRepository(Post)
-//     .createQueryBuilder("p")
-//     .innerJoinAndSelect(
-//       "p.creator",
-//       "u",
-//       'u._id =p."creatorId"'
-//     )
-//     .orderBy('p."createdAt"',"DESC")
-//     .take(realLimitplusOne)
-
-//     if(cursor){
-//     qb.where('p."createdAt" < :cursor', 
-//     { cursor:new Date(parseInt(cursor))})
-//     }
-//    const posts=await qb.getMany()
-
-   const hasMore=posts.length===reaLimitPlusOne
-
-    return {posts:posts.slice(1,reallimit),hasMore}
+const hasMore=posts.length===reaLimitPlusOne
+return {posts:posts.slice(1,reallimit),hasMore}
 
    }
 
@@ -140,6 +122,40 @@ async deletePost(
 await Post.delete(_id)
 return true
 
+}
+
+@Mutation(()=>Boolean)
+// @UseMiddleware(isAuth)
+async vote(
+   @Arg('postId',()=>Int) postId:number,
+   @Arg('value',()=>Int) value:number,
+   @Ctx() {req}:MyContex
+
+){
+const isUpdoot=value!==-1 
+const realvalue=isUpdoot ? 1:-1
+const userId=req.session.userId?req.session.userId:1
+// await Updoot.insert(
+//  {  
+//    userId,
+//    postId,
+//    value: realvalue
+// }
+// )
+getConnection().query(`
+START TRANSACTION;
+
+insert into updoot ("userId","postId",value)
+values(${userId},${postId},${realvalue});
+
+update post 
+set points=points+${realvalue}
+where _id=${postId};
+
+COMMIT;
+`);
+
+return true
 }
 
 

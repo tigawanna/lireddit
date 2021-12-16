@@ -43,11 +43,16 @@ class UserResponse {
 export class UserResolver {
 
   
-@FieldResolver(()=>String)
-email(@Root() user:User ,   @Ctx() { req }: MyContex){
-  console.log("from email resolver",req.session.userId)
-return user.email
-}
+  @FieldResolver(() => String)
+  email(@Root() user: User, @Ctx() { req }: MyContex) {
+    // this is the current user and its ok to show them their own email
+    if (req.session.userId === user._id) {
+      return user.email;
+    }
+    // current user wants to see someone elses email
+    return "";
+  }
+
 
 @Query(()=>User,{nullable:true})
 Me(

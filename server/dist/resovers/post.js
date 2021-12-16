@@ -95,6 +95,24 @@ limit $1
         await Posts_1.Post.delete(_id);
         return true;
     }
+    async vote(postId, value, { req }) {
+        const isUpdoot = value !== -1;
+        const realvalue = isUpdoot ? 1 : -1;
+        const userId = req.session.userId ? req.session.userId : 1;
+        (0, typeorm_1.getConnection)().query(`
+START TRANSACTION;
+
+insert into updoot ("userId","postId",value)
+values(${userId},${postId},${realvalue});
+
+update post 
+set points=points+${realvalue}
+where _id=${postId};
+
+COMMIT;
+`);
+        return true;
+    }
 };
 __decorate([
     (0, type_graphql_1.FieldResolver)(() => String),
@@ -142,6 +160,15 @@ __decorate([
     __metadata("design:paramtypes", [Number]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "deletePost", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    __param(0, (0, type_graphql_1.Arg)('postId', () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Arg)('value', () => type_graphql_1.Int)),
+    __param(2, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "vote", null);
 PostResolver = __decorate([
     (0, type_graphql_1.Resolver)(Posts_1.Post)
 ], PostResolver);

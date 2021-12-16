@@ -54,8 +54,10 @@ UserResponse = __decorate([
 ], UserResponse);
 let UserResolver = class UserResolver {
     email(user, { req }) {
-        console.log("from email resolver", req.session.userId);
-        return user.email;
+        if (req.session.userId === user._id) {
+            return user.email;
+        }
+        return "";
     }
     Me({ req }) {
         console.log("from me query", req.session.userId);

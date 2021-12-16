@@ -19,6 +19,7 @@ const User_1 = require("./entities/User");
 const typeorm_1 = require("typeorm");
 const Posts_1 = require("./entities/Posts");
 const path_1 = __importDefault(require("path"));
+const Updoot_1 = require("./entities/Updoot");
 const app = (0, express_1.default)();
 const main = async () => {
     const conn = await (0, typeorm_1.createConnection)({
@@ -29,7 +30,7 @@ const main = async () => {
         logging: true,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
-        entities: [Posts_1.Post, User_1.User]
+        entities: [Posts_1.Post, User_1.User, Updoot_1.Updoot]
     });
     const allowedOrigins = ['http://localhost:3000',
         'https://studio.apollographql.com'];
