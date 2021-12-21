@@ -8,6 +8,7 @@ import { getConnection } from 'typeorm';
 import { Updoot } from './../entities/Updoot';
 
 
+
 @InputType()
 class PostInput{
  @Field()
@@ -69,8 +70,17 @@ limit $1
   replacements
 );
 
+// console.log("posts from query  ======= ",posts)
+// posts&&posts.map((pst: any)=>{
+   // console.log("posts from query  ======= ",posts)
+// })
+
+
 const hasMore=posts.length===reaLimitPlusOne
-return {posts:posts.slice(1,reallimit),hasMore}
+return {
+   posts:posts.slice(0,reallimit),
+   
+   hasMore}
 
    }
 
@@ -132,28 +142,52 @@ async vote(
    @Ctx() {req}:MyContex
 
 ){
+
 const isUpdoot=value!==-1 
 const realvalue=isUpdoot ? 1:-1
 const userId=req.session.userId?req.session.userId:1
-// await Updoot.insert(
-//  {  
-//    userId,
-//    postId,
-//    value: realvalue
-// }
-// )
-getConnection().query(`
-START TRANSACTION;
 
+const updoot=await Updoot.findOne({postId,userId})  
+//user has voted on the post before
+//and is changing the vote
+if(updoot&&updoot.value!==realvalue){
+   await getConnection().transaction(async tm=>{
+   await tm.query(`
+update  updoot 
+set value=$1
+where "userId"=$2 and "postId"=$3
+`,
+[realvalue,userId,postId,]);
+
+await tm.query(`
+update  post
+set points=points+$1
+where "_id"=$2
+`,
+//multiply real value times two because 1 down vote shoud be -1 buut 1 = -1 =0
+[2*realvalue,postId,]);
+
+   })
+}
+//hasn'tvvoted before
+else if(!updoot){
+
+await getConnection().transaction(async tm=>{
+
+await tm.query(`
 insert into updoot ("userId","postId",value)
-values(${userId},${postId},${realvalue});
+values($1,$2,$3);`,
+[userId,postId,realvalue]);
 
+await tm.query(`
 update post 
-set points=points+${realvalue}
-where _id=${postId};
+set points=points+$1
+where _id=$2;
+`,[realvalue,postId]);
 
-COMMIT;
-`);
+})
+}
+
 
 return true
 }

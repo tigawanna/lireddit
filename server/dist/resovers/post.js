@@ -18,6 +18,7 @@ const Posts_1 = require("./../entities/Posts");
 const sleep_1 = require("../utils/sleep");
 const isAuth_1 = require("./../middleware/isAuth");
 const typeorm_1 = require("typeorm");
+const Updoot_1 = require("./../entities/Updoot");
 let PostInput = class PostInput {
 };
 __decorate([
@@ -72,7 +73,10 @@ order by p."createdAt" DESC
 limit $1
 `, replacements);
         const hasMore = posts.length === reaLimitPlusOne;
-        return { posts: posts.slice(1, reallimit), hasMore };
+        return {
+            posts: posts.slice(0, reallimit),
+            hasMore
+        };
     }
     post(_id) {
         return Posts_1.Post.findOne(_id);
@@ -99,18 +103,33 @@ limit $1
         const isUpdoot = value !== -1;
         const realvalue = isUpdoot ? 1 : -1;
         const userId = req.session.userId ? req.session.userId : 1;
-        (0, typeorm_1.getConnection)().query(`
-START TRANSACTION;
-
+        const updoot = await Updoot_1.Updoot.findOne({ postId, userId });
+        if (updoot && updoot.value !== realvalue) {
+            await (0, typeorm_1.getConnection)().transaction(async (tm) => {
+                await tm.query(`
+update  updoot 
+set value=$1
+where "userId"=$2 and "postId"=$3
+`, [realvalue, userId, postId,]);
+                await tm.query(`
+update  post
+set points=points+$1
+where "_id"=$2
+`, [2 * realvalue, postId,]);
+            });
+        }
+        else if (!updoot) {
+            await (0, typeorm_1.getConnection)().transaction(async (tm) => {
+                await tm.query(`
 insert into updoot ("userId","postId",value)
-values(${userId},${postId},${realvalue});
-
+values($1,$2,$3);`, [userId, postId, realvalue]);
+                await tm.query(`
 update post 
-set points=points+${realvalue}
-where _id=${postId};
-
-COMMIT;
-`);
+set points=points+$1
+where _id=$2;
+`, [realvalue, postId]);
+            });
+        }
         return true;
     }
 };
