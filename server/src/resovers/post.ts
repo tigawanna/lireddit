@@ -40,6 +40,7 @@ return root.text.slice(0,50)
 async posts(
    @Arg('limit',()=>Int)limit:number,
    @Arg('cursor',()=>String,{nullable:true})cursor:string | null,
+   @Ctx() { req }: MyContex
 ):Promise<PaginatedPosts>{
 await sleep(0)
 const reallimit=Math.min(50,limit)
@@ -47,23 +48,33 @@ const reaLimitPlusOne=reallimit+1
 
 const replacements: any[] = [reaLimitPlusOne];
 
+if(req.session.userId){
+  replacements.push(req.session.userId)
+}
+let cursorIdx=3;
 if (cursor) {
   replacements.push(new Date(parseInt(cursor)));
+  cursorIdx=replacements.length
 }
 
 const posts = await getConnection().query(
   `
 select p.*,
 json_build_object(
-   '_id',u._id,
-   'username', u.username,
-   'email', u.email,
-   'updateAt', u."updatedAt",
-   'createdAt', u."createdAt"
-   ) creator
+  '_id', u._id,
+  'username', u.username,
+  'email', u.email,
+  'createdAt', u."createdAt",
+  'updatedAt', u."updatedAt"
+  ) creator,
+${
+  req.session.userId
+    ? '(select value from updoot where "userId" = $2 and "postId" = p._id) "voteStatus"'
+    : 'null as "voteStatus"'
+}
 from post p
-inner join public.user u on u._id=p."creatorId"
-${cursor ? `where p."createdAt" < $2` : ""}
+inner join public.user u on u._id = p."creatorId"
+${cursor ? `where p."createdAt" < $${cursorIdx}` : ""}
 order by p."createdAt" DESC
 limit $1
 `,

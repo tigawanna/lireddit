@@ -49,26 +49,34 @@ let PostResolver = class PostResolver {
     textSnippet(root) {
         return root.text.slice(0, 50);
     }
-    async posts(limit, cursor) {
+    async posts(limit, cursor, { req }) {
         await (0, sleep_1.sleep)(0);
         const reallimit = Math.min(50, limit);
         const reaLimitPlusOne = reallimit + 1;
         const replacements = [reaLimitPlusOne];
+        if (req.session.userId) {
+            replacements.push(req.session.userId);
+        }
+        let cursorIdx = 3;
         if (cursor) {
             replacements.push(new Date(parseInt(cursor)));
+            cursorIdx = replacements.length;
         }
         const posts = await (0, typeorm_1.getConnection)().query(`
 select p.*,
 json_build_object(
-   '_id',u._id,
-   'username', u.username,
-   'email', u.email,
-   'updateAt', u."updatedAt",
-   'createdAt', u."createdAt"
-   ) creator
+  '_id', u._id,
+  'username', u.username,
+  'email', u.email,
+  'createdAt', u."createdAt",
+  'updatedAt', u."updatedAt"
+  ) creator,
+${req.session.userId
+            ? '(select value from updoot where "userId" = $2 and "postId" = p._id) "voteStatus"'
+            : 'null as "voteStatus"'}
 from post p
-inner join public.user u on u._id=p."creatorId"
-${cursor ? `where p."createdAt" < $2` : ""}
+inner join public.user u on u._id = p."creatorId"
+${cursor ? `where p."createdAt" < $${cursorIdx}` : ""}
 order by p."createdAt" DESC
 limit $1
 `, replacements);
@@ -144,8 +152,9 @@ __decorate([
     (0, type_graphql_1.Query)(() => PaginatedPosts),
     __param(0, (0, type_graphql_1.Arg)('limit', () => type_graphql_1.Int)),
     __param(1, (0, type_graphql_1.Arg)('cursor', () => String, { nullable: true })),
+    __param(2, (0, type_graphql_1.Ctx)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:paramtypes", [Number, Object, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "posts", null);
 __decorate([
