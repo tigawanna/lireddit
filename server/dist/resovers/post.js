@@ -87,7 +87,7 @@ limit $1
         };
     }
     post(_id) {
-        return Posts_1.Post.findOne(_id);
+        return Posts_1.Post.findOne(_id, { relations: ["creator"] });
     }
     async createPost(input, { req }) {
         return Posts_1.Post.create(Object.assign(Object.assign({}, input), { creatorId: req.session.userId })).save();

@@ -100,7 +100,7 @@ return {
 post(
 @Arg('id',()=>Int) _id:number,
 ) :Promise<Post|null|undefined>{
-   return Post.findOne(_id)
+   return Post.findOne(_id,{relations:["creator"]})
 }
 
 //create new post
