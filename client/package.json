@@ -1,28 +1,38 @@
 {
-  "name": "client",
+  "name": "web3",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen": "graphql-codegen --config codegen.yaml"
   },
   "dependencies": {
-    "@apollo/client": "^3.4.17",
-    "@chakra-ui/react": "^1.7.1",
-    "@emotion/react": "^11.6.0",
+    "@emotion/react": "^11.7.0",
     "@emotion/styled": "^11.6.0",
+    "@graphql-codegen/typescript-urql": "^3.4.1",
     "@urql/exchange-graphcache": "^4.3.5",
-    "formik": "^2.2.9",
+    "dayjs": "^1.10.7",
     "framer-motion": "^4.1.17",
     "graphql": "^16.0.1",
     "next": "12.0.4",
+    "next-urql": "^3.3.1",
     "react": "17.0.2",
     "react-dom": "17.0.2",
+    "react-icons": "^4.3.1",
+    "react-is": "^17.0.2",
     "urql": "^2.0.5"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "2.3.0",
+    "@graphql-codegen/typescript": "2.4.1",
+    "@graphql-codegen/typescript-operations": "2.2.1",
+    "@types/node": "16.11.10",
+    "@types/react": "17.0.37",
     "eslint": "7",
-    "eslint-config-next": "12.0.4"
+    "eslint-config-next": "12.0.4",
+    "typescript": "4.5.2",
+    "@graphql-codegen/introspection": "2.1.0"
   }
 }

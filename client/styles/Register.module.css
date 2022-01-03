@@ -4,7 +4,7 @@
     align-items: center;
     height :100vh;
     border:purple 2px solid;
-    background-color: rgba(250, 249, 198, 0.952)8, 0.87
+    background-color: rgba(233, 233, 222, 0.952)8, 0.87
 }
 
 .theform{
@@ -12,11 +12,11 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 60%;
-    width: 50%;
-    border:purple 1px solid;
+    padding: 5%;
+    width: 70%;
+    border:purple 2px solid;
     border-radius: 7px;
-    background-color: rgba(223, 208, 208, 0.986);
+    background-color:rgb(217, 223, 166);
 }
 
 .inputgroup{
@@ -24,30 +24,77 @@
     flex-direction: column;
     justify-content: center;
     padding: 5px;
-    width: 50%;
+    min-width: 250px;
 }
 .inputgroup label{
-background-color: rgb(255, 247, 238);
+    background-color:rgb(241, 247, 194);
 padding: 5px;
 width:100%;
 margin: 5px;
 }
 
-.inputgroup input{
-padding:10px;
-width: 100%;
-margin: 5px;
-}
 
+.theinput{
+    padding:10px;
+    width: 100%;
+    margin: 5px;
+    
+    }
+.theinputerror{
+    padding:10px;
+    width: 100%;
+    margin: 5px;
+    border: 2px solid red;
+    }
 .formbutton{
     padding: 10px;
-    background-color: rgb(255, 247, 238);
-    width: 30%;
+    margin-top: 10px;
+    background-color: rgb(207, 165, 116);
+    min-width: 30%;
     font-weight: bold;
+    font-size:15px;
+    border-radius:5px;
 }
 .inputerror{
     color: red;
-    background-color: rgb(255, 255, 255);
+    width: 100%;
+     font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+
+
+@media only screen and (max-width: 400px) {
+    .theform{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 5%;
+        width: 95%;
+        border:purple 1px solid;
+        border-radius: 7px;
+        background-color: rgba(223, 208, 208, 0.986);
+    }
+    
+    .inputgroup{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 5px;
+        min-width: 90%;
+    }
+    .inputgroup label{
+    background-color: rgb(255, 247, 238);
+    padding: 5px;
+    width:100%;
+    margin: 5px;
+    }
+    
+    .inputgroup input{
+    padding:10px;
     width: 100%;
     margin: 5px;
-}
+    }
+  }

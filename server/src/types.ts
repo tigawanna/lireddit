@@ -5,7 +5,7 @@ import { Redis } from 'ioredis';
 
 
 
- type MyContex ={
+type MyContex ={
  req: Request & { session: Session };
     res: Response;
     redis:Redis;

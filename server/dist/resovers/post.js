@@ -103,10 +103,6 @@ limit $1
         }
         return post;
     }
-    async deletePost(_id) {
-        await Posts_1.Post.delete(_id);
-        return true;
-    }
     async vote(postId, value, { req }) {
         const isUpdoot = value !== -1;
         const realvalue = isUpdoot ? 1 : -1;
@@ -138,6 +134,12 @@ where _id=$2;
 `, [realvalue, postId]);
             });
         }
+        return true;
+    }
+    async deletePost(_id, { req }) {
+        await Posts_1.Post.delete({ _id, creatorId: req.session.userId })
+            .then(e => console.log("is delete post ======", e))
+            .catch(e => console.log("is delete error ======", e));
         return true;
     }
 };
@@ -183,13 +185,6 @@ __decorate([
 ], PostResolver.prototype, "updatePost", null);
 __decorate([
     (0, type_graphql_1.Mutation)(() => Boolean),
-    __param(0, (0, type_graphql_1.Arg)('id', () => type_graphql_1.Int)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number]),
-    __metadata("design:returntype", Promise)
-], PostResolver.prototype, "deletePost", null);
-__decorate([
-    (0, type_graphql_1.Mutation)(() => Boolean),
     __param(0, (0, type_graphql_1.Arg)('postId', () => type_graphql_1.Int)),
     __param(1, (0, type_graphql_1.Arg)('value', () => type_graphql_1.Int)),
     __param(2, (0, type_graphql_1.Ctx)()),
@@ -197,6 +192,15 @@ __decorate([
     __metadata("design:paramtypes", [Number, Number, Object]),
     __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "vote", null);
+__decorate([
+    (0, type_graphql_1.Mutation)(() => Boolean),
+    (0, type_graphql_1.UseMiddleware)(isAuth_1.isAuth),
+    __param(0, (0, type_graphql_1.Arg)('id', () => type_graphql_1.Int)),
+    __param(1, (0, type_graphql_1.Ctx)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Object]),
+    __metadata("design:returntype", Promise)
+], PostResolver.prototype, "deletePost", null);
 PostResolver = __decorate([
     (0, type_graphql_1.Resolver)(Posts_1.Post)
 ], PostResolver);

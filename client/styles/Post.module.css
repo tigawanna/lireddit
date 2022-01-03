@@ -1,0 +1,69 @@
+
+.card {
+    margin: 0.4rem;
+    padding: 1rem;
+    text-align: center;
+    color: inherit;
+    text-decoration: none;
+    /* border: 1px solid #bbb0b0; */
+    border-radius: 10px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+    min-width: 300px;
+    width: 70%;
+    max-width: 90%;
+    box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.46);
+    -webkit-box-shadow: px 1px 1px 1px rgba(0,0,0,0.46);
+    -moz-box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.46);
+    /* background-color: yellow; */
+    
+  }
+  .cardheader{
+    width: 100%;
+    display: flex;
+    justify-content:space-between;
+    align-items: center;
+    margin: 5px;
+    /* outline: 2px solid black; */
+
+  }
+  .cardheaderid{
+    font-weight: 800;
+    /* outline: 2px solid black; */
+  }
+  .cardmiddle{
+    /* outline: 2px solid black; */
+    display: flex;
+    justify-content: space-between;
+   }
+   .cardmiddlestart{
+    /* outline: 2px solid black; */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 10%;
+    margin: 5px;
+    
+   }
+
+   .cardmiddlemiddle{
+    /* outline: 2px solid black; */
+    display: flex;
+    width:40%;
+    margin: 5px;
+   }
+
+   .cardmiddleend{
+    /* outline: 2px solid black; */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 5%;
+    margin: 5px;
+   }
+
+  .updoots{
+    padding:20;
+    margin: 2px;
+    font-weight: 500;
+    
+  }

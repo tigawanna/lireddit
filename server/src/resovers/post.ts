@@ -1,5 +1,7 @@
-import {Resolver,Query,Mutation,Arg,Int, InputType,
-    Field, Ctx, UseMiddleware, FieldResolver, Root,ObjectType} from 'type-graphql'
+import {
+   Resolver,Query,Mutation,Arg,Int, InputType,
+    Field, Ctx, UseMiddleware, FieldResolver, 
+    Root,ObjectType} from 'type-graphql'
 import { Post } from './../entities/Posts';
 import { sleep } from '../utils/sleep';
 import MyContex from './../types';
@@ -135,15 +137,7 @@ await Post.update({_id},{title})
 }
 
 
-//delete a post
-@Mutation(()=>Boolean)
-async deletePost(
-@Arg('id',()=>Int) _id:number,
-) :Promise<boolean>{
-await Post.delete(_id)
-return true
 
-}
 
 @Mutation(()=>Boolean)
 // @UseMiddleware(isAuth)
@@ -198,9 +192,24 @@ where _id=$2;
 
 })
 }
-
-
 return true
+}
+
+
+
+
+//delete a post
+@Mutation(()=>Boolean)
+@UseMiddleware(isAuth)
+async deletePost(
+@Arg('id',()=>Int) _id:number,
+@Ctx() {req}:MyContex
+) :Promise<boolean>{
+await Post.delete({_id,creatorId:req.session.userId})
+.then(e=>console.log("is delete post ======",e))
+.catch(e=>console.log("is delete error ======",e))
+return true
+
 }
 
 

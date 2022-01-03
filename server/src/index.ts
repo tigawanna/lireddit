@@ -99,6 +99,7 @@ schema:await buildSchema({
 }),
 context:({req,res}):MyContex=>({req,res,redis})
 });
+
 await apolloServer.start()
 apolloServer.applyMiddleware({app,cors:corsOptions});
 }

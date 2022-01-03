@@ -1,0 +1,137 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  border: purple 2px solid;
+  background-color: rgba(233, 233, 222, 0.952) 8, 0.87;
+}
+
+.theform {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5%;
+  width: 70%;
+  min-width: 250px;
+  border: purple 2px solid;
+  border-radius: 7px;
+  background-color: rgb(217, 223, 166);
+}
+
+.inputgroup {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 5px;
+  min-width: 250px;
+  width: 100%;
+}
+.inputgroup label {
+  background-color: rgb(241, 247, 194);
+  padding: 5px;
+  width: 100%;
+  margin: 5px;
+}
+
+.theinput {
+  padding: 10px;
+  width: 100%;
+  margin: 5px;
+}
+.titleinput {
+  padding: 10px;
+  width: 40%;
+  margin: 5px;
+  font-size: 17px;
+  font-weight: bold;
+}
+.titleinputerror{
+    padding: 10px;
+    width: 40%;
+    margin: 5px;
+    border: 2px solid red;
+    font-size: 17px;
+  }
+.textinput {
+    padding: 10px;
+    width: 100%;
+    height: 150px;
+    font-size: 16px;
+  }
+.textinputerror {
+    padding: 10px;
+    width: 100%;
+    height: 150px;
+    border: 2px solid red;
+    font-size: 16px;
+  }
+
+  .inputerror{
+    color: red;
+    width: 100%;
+     font-size: 14px;
+    font-weight: 700;
+    
+}
+
+
+.formbutton {
+  padding: 10px;
+  margin-top: 10px;
+  background-color: rgb(207, 165, 116);
+  min-width: 40%;
+  width: 40%;
+  font-weight: bold;
+  font-size: 15px;
+  border-radius: 5px;
+}
+.errorbanner{
+  padding:10px;
+  margin-top: 10px;
+  background-color: rgb(250, 248, 246);
+  color: red;
+}
+
+
+@media only screen and (max-width: 400px) {
+  .theform {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 5%;
+    width: 95%;
+    border: purple 1px solid;
+    border-radius: 7px;
+    background-color: rgba(223, 208, 208, 0.986);
+  }
+
+  .inputgroup {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 5px;
+    min-width: 90%;
+  }
+  .inputgroup label {
+    background-color: rgb(255, 247, 238);
+    padding: 5px;
+    width: 100%;
+    margin: 5px;
+  }
+
+  .formbutton {
+    padding: 10px;
+    margin-top: 10px;
+    background-color: rgb(207, 165, 116);
+    min-width: 30%;
+    width: 70%;
+    font-weight: bold;
+    font-size: 15px;
+    border-radius: 5px;
+  }
+
+
+}
